@@ -3,7 +3,7 @@ import os
 import sys
 import spoofer
 import _thread
-from scapy.all import *
+
 
 
 def _enable_linux_iproute():
@@ -27,7 +27,7 @@ def thread_spoof(target, host):
         time.sleep(1)
 
 
-def parser():
+def argParser():
     #WIP
     return
 
@@ -40,11 +40,15 @@ def main():
     _thread.start_new_thread(thread_spoof, (target, host))
     print("Success!")
 
-    bash = "modprobe dummy && ip link add eth10 type dummy && ip addr add 8.8.8.8/32 dev eth10 label eth10:0 && ip -6 addr add fddc:867d:e21d:0:0:0:0:1/64  dev eth10 label eth10:0"
+    bash = "modprobe dummy && " \
+           "ip link add eth10 type dummy && " \
+           "ip addr add 8.8.8.8/32 dev eth10 label eth10:0 && " \
+           "ip -6 addr add fddc:867d:e21d:0:0:0:0:1/64  dev eth10 label eth10:0"
     os.system(bash)
 
     try:
         while True:
+            #WIP
             #pkts = sniff(count=1, filter="host 8.8.8.8 or host " + target + " and  port 53")
             #print(pkts)
             pass
