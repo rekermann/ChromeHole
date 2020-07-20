@@ -3,10 +3,10 @@ from scapy.layers.l2 import *
 
 
 def get_mac(ip):
-    ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff')/ARP(pdst=ip), timeout=3, verbose=0)
-    while ans != None:
+    ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff')/ARP(pdst=ip), timeout=10, verbose=0)
+    while ans == None:
         print("Unable to get mac for: " + ip + " retrying")
-        ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff') / ARP(pdst=ip), timeout=3, verbose=0)
+        ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff') / ARP(pdst=ip), timeout=10, verbose=0)
 
     return ans[0][1].src
 
