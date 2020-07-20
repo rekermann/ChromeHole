@@ -34,6 +34,7 @@ def main():
     target1 = sys.argv[1]
     target2 = sys.argv[2]
 
+    print("----------------------------------")
     print("Creating Virtual NIC eth10 with ip: 8.8.8.8 & 8.8.4.4")
     bash = "modprobe dummy && ip link add eth10 type dummy && ip addr add 8.8.8.8/0 brd + dev eth10 label eth10:0 && ip addr add 8.8.4.4/0 brd + dev eth10 label eth10:1"
     os.system(bash)
@@ -46,6 +47,7 @@ def main():
     _thread.start_new_thread(thread_spoof, (target1, target2))
     _thread.start_new_thread(thread_spoof, (target2, target1))
     print("Success!")
+    print("----------------------------------")
 
     try:
         while True:

@@ -2,17 +2,19 @@ from scapy.all import *
 from scapy.layers.l2 import *
 
 
+
 def get_mac(ip):
     """
     Returns MAC address of any device connected to the network
     If ip is down, returns None instead
     """
-    ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff')/ARP(pdst=ip), timeout=10, verbose=0)
-    if ans:
-        return ans[0][1].src
-    else:
-        print("Unable to get mac for: " + ip + " please check the ip adress or try again later")
-        exit()
+    ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff')/ARP(pdst=ip), timeout=3, verbose=0)
+    while ans != None:
+        print("Unable to get mac for: " + ip + " retrying")
+        ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff') / ARP(pdst=ip), timeout=3, verbose=0)
+
+    return ans[0][1].src
+
 
 
 def spoof(target_ip, host_ip, target_mac):
