@@ -24,7 +24,6 @@ def thread_spoof(target1, target2):
         time.sleep(1)
 
 
-
 def argParser():
     if len(sys.argv) < 2:
         print("Please call script with the ip of your chromecast")
@@ -44,7 +43,6 @@ def argParser():
 
 def main():
     targets = argParser()
-    exit()
     print("----------------------------------")
     print("Creating Virtual NIC eth10 with ip: 8.8.8.8 & 8.8.4.4")
     bash = "modprobe dummy && ip link add eth10 type dummy && ip addr add 8.8.8.8/0 brd + dev eth10 label eth10:0 && ip addr add 8.8.4.4/0 brd + dev eth10 label eth10:1"
