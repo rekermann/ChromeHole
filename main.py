@@ -33,6 +33,7 @@ def argParser():
         tmp = sys.argv[1].split('.')
         target2 = tmp[0] + "." + tmp[1] + "." + tmp[2] + ".1"
         print("Assuming default gateway is: " + target2)
+        print("If this is not correct please supply the ip for the default gateway as an argument")
     else:
         target2 = sys.argv[2]
 
