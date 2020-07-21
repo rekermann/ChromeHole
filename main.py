@@ -46,8 +46,6 @@ def argParser():
         tmp.append(sys.argv[k])
         k = k + 1
 
-    j = len(tmp)
-
     for x in tmp:
         if x == "-h":
             print("Script needs to be run as root")
@@ -58,11 +56,12 @@ def argParser():
             exit()
         elif x == "-t":
             t = False
-            if sys.argv[i]:
+            if i <= len(tmp):
                 if validIPAddress(sys.argv[i]):
                     target = sys.argv[i]
                 else:
                     print(sys.argv[i] + " is not an valid ip address")
+                    print("")
                     exit()
             else:
                 print("Missing value for -t")
@@ -70,24 +69,32 @@ def argParser():
         elif x == "-f":
             p = i
             f = False
-            while (tmp[p] != "-g") and (tmp[p] != "-t"):
+            while (p != len(tmp)) and tmp[p] != "-g" and (tmp[p] != "-t"):
                 if validIPAddress(sys.argv[p]):
                     fake.append(sys.argv[p])
                 else:
                     print(sys.argv[p] + " is not an valid ip address")
+                    print("")
                 p = p + 1
-                if p == j:
-                    break
-            if sys.argv[p]:
+            if p <= len(tmp):
                 if validIPAddress(sys.argv[p]):
                     fake.append(sys.argv[p])
+                else:
+                    print(sys.argv[p] + " is not an valid ip address")
+                    print("")
             else:
                 print(sys.argv[p] + " is not an valid ip address")
+                print("")
         elif x == "-g":
-            if validIPAddress(sys.argv[i]):
-                gw = sys.argv[i]
+            if i <= len(tmp):
+                if validIPAddress(sys.argv[i]):
+                    gw = sys.argv[i]
+                else:
+                    print(sys.argv[i] + " is not an valid ip address")
+                    print("")
             else:
-                print(sys.argv[i] + " is not an valid ip address")
+                print("Missing value for -g")
+                print("")
 
         i = i + 1
 
