@@ -1,25 +1,34 @@
-import sys
+import _thread
 import socket
 import os
+import spoofer
+import time
+from menu import bcolors
 
-class forward:
-    def __init__(self):
-        self.ip_forward = False
 
-    def toggleIpforward(self):
-        file_path = "/proc/sys/net/ipv4/ip_forward"
-        print(self.ip_forward)
-        with open(file_path, "w") as f:
-            if self.ip_forward:
+def toggleIpforward(v):
+    """
+    Toggle ip forward in /proc/sys/net/ipv4/ip_forward
+    :param v:
+    :return:
+    """
+    file_path = "/proc/sys/net/ipv4/ip_forward"
+    with open(file_path, "w") as f:
+        if v.ipforward:
                 print(0, file=f)
-                self.ip_forward = False
-            else:
+                v.ipforward = False
+        else:
                 print(1, file=f)
-                self.ip_forward = True
-        return
+                v.ipforward = True
+    return
 
 
 def validIPAddress(ip):
+    """
+    Checks if it's a valid IP
+    :param ip:
+    :return:
+    """
     try:
         socket.inet_aton(ip)
         return True
@@ -28,10 +37,20 @@ def validIPAddress(ip):
 
 
 def cls():
+    """
+    clears console
+    :return:
+    """
     os.system("clear")
     return
 
+
 def getIp(name):
+    """
+    Returns ip from hostname
+    :param name:
+    :return:
+    """
     tmp = []
     ips = socket.getaddrinfo(socket.gethostbyname(name), None)
     for x in ips:
@@ -40,99 +59,255 @@ def getIp(name):
     return tmp
 
 
-def argParser():
+def getGwIp(target):
+    """
+    Gets the gateway ip address assuming netmask 255.255.255.0
+    :param target:
+    :return:
+    """
+    tmp = target.split('.')
+    gw = (tmp[0] + "." + tmp[1] + "." + tmp[2] + ".1")
+    print("Assuming default gateway is: " + gw)
+    print("")
+    return gw
 
-    i = 2
-    t = True
-    f = True
+
+def removeTargets(v):
+    """
+    Remove target from object vals
+    :param v:
+    :return:
+    """
+    if v.spoof:
+        print("      " + bcolors.WARNING + "Turn off spoofer first" + bcolors.ENDC)
+        time.sleep(1)
+        return
+
+    if len(v.targets) > 0:
+        i = 1
+        for x in v.targets:
+            print(f"      {i} - {x}")
+            i += 1
+    else:
+        print("      " + bcolors.WARNING + "No targets" + bcolors.ENDC)
+        time.sleep(1)
+        return
+
+    try:
+        sel = int(input("      Enter selection you want to delete: ")) - 1
+    except ValueError:
+        print("      " + bcolors.WARNING + "Only input integers" + bcolors.ENDC)
+        time.sleep(1)
+        return
+
+    if sel >= len(v.targets):
+        print("      " + bcolors.WARNING + "Selection not in list" + bcolors.ENDC)
+        time.sleep(1)
+        return
+
+    if sel == 0:
+        print("      " + bcolors.WARNING + "Default gateway removed, removing all targets" + bcolors.ENDC)
+        v.targets = []
+        time.sleep(2)
+    else:
+        v.targets.pop(sel)
+
+    return
+
+
+def removeNics(v):
+    """
+    Removes fake ips that have been setup
+    :param v:
+    :return:
+    """
+
+    if len(v.fakes) > 0:
+        i = 1
+        for x in v.fakes:
+            print(f"      {i} - {x}")
+            i += 1
+
+        try:
+            sel = int(input("      Enter selection you want to delete: ")) - 1
+        except ValueError:
+            print("      " + bcolors.WARNING + "Only input integers" + bcolors.ENDC)
+            time.sleep(1)
+            return
+        except KeyboardInterrupt:
+            return
+
+        if sel >= len(v.fakes):
+            print("      " + bcolors.WARNING + "Selection not in list" + bcolors.ENDC)
+            time.sleep(1)
+            return
+
+        bash = ("ip addr del  " + v.fakes[sel] + "/0 dev dummy label dummy")
+        os.system(bash)
+        v.fakes.pop(sel)
+        return
+    else:
+        print("      " + bcolors.WARNING + "No fake NICs" + bcolors.ENDC)
+        time.sleep(1)
+        return
+
+
+def startSpoof(v):
+    """
+    Starts arpspoofing
+    :param v:
+    :return:
+    """
+    if len(v.targets) < 2:
+        print("      " + bcolors.WARNING + "Not enough targets" + bcolors.ENDC)
+        time.sleep(1)
+        return
+
+    gw = v.targets[0]
+    hgw = v.macs[0]
+    j = 1
+    if v.spoof:
+        print("      " + bcolors.WARNING + "Already Spoofing" + bcolors.ENDC)
+        time.sleep(1)
+    v.spoof = True
+    for x in v.targets[1:]:
+        _thread.start_new_thread(spoofer.thread_spoof, (x, gw, v.macs[j], hgw, v))
+        j += 1
+    return
+
+
+def restore(v):
+    """
+    Restores arpspoofing
+    :param v:
+    :return:
+    """
+    if not v.spoof:
+        print("      " + bcolors.WARNING + "Currently not spoofing" + bcolors.ENDC)
+        time.sleep(1)
+        return
+
+    gw = v.targets[0]
+    hgw = v.macs[0]
+    v.spoof = False
+    j = 1
+    for x in v.targets[1:]:
+        spoofer.restore(x, gw, v.macs[j], hgw)
+        spoofer.restore(gw, x, v.macs[j], hgw)
+    return
+
+
+def addFake(v):
+    """
+    adds fake ip to object vals
+    :param v:
+    :return:
+    """
+    fakes = input("      Enter IP addresses separated with a space: ")
+    fakes = fakes.split(" ")
+    tmp = True
+
+    for x in fakes:
+        if validIPAddress(x):
+            bash = ("ip addr add " + x + "/0 dev dummy label dummy")
+            os.system(bash)
+            if len(v.fakes) == 0:
+                v.fakes.append(x)
+            else:
+                for y in v.fakes:
+                    if y == x:
+                        tmp = False
+
+                if tmp:
+                    v.fakes.append(x)
+                else:
+                    print("      " + bcolors.WARNING + x + " already in list" + bcolors.ENDC)
+                    tmp = True
+                    time.sleep(1)
+
+        else:
+            print("      " + bcolors.WARNING + x + " is not a valid IP" + bcolors.ENDC)
+            time.sleep(1)
+
+    if len(v.fakes) > 0:
+        bash = "ip a | grep -w inet"
+        os.system(bash)
+        print("      Created dummy NICs")
+    else:
+        print("      " + bcolors.WARNING + " no valid ips" + bcolors.ENDC)
+
+    time.sleep(1)
+    return
+
+
+def addTarget(v):
+    """
+    Adds target to object vals
+    :param v:
+    :return:
+    """
+    if v.spoof:
+        print("      " + bcolors.WARNING + "Turn off spoofer first" + bcolors.ENDC)
+        time.sleep(1)
+        return
+
     gw = ""
-    fake = []
-    targets = []
-    tmp = []
-    k = 1
-
-    while k < len(sys.argv):
-        tmp.append(sys.argv[k])
-        k = k + 1
-
-    for x in tmp:
-        if x == "-h":
-            print("Script needs to be run as root")
-            print("Specify target to arpspoof with -t (required) - e.g -t 192.168.1.2")
-            print("Specify IP addresses to masquerade as with -f (optional) - e.g -f 1.1.1.1 1.1.1.2")
-            print("Specify default gateway -g (if not provided the script will guess) - e.g -g 192.168.1.1")
-            print("----------------------------------")
-            exit()
-        elif x == "-t":
-            t = False
-            if i <= len(tmp):
-                if validIPAddress(sys.argv[i]):
-                    target = sys.argv[i]
-                else:
-                    print(sys.argv[i] + " is not an valid ip address")
-                    print("")
-                    exit()
+    target = input("      Enter IP address of target: ")
+    if len(v.targets) == 0:
+        gw = input("      Enter IP address of router (leave blank if same subnet): ")
+        if validIPAddress(gw):
+            tmp = spoofer.get_mac(gw)
+            if tmp:
+                v.targets.append(gw)
+                v.macs.append(tmp)
             else:
-                print("Missing value for -t")
-                exit()
-        elif x == "-f":
-            p = i
-            f = False
-            while (p != len(tmp)) and tmp[p] != "-g" and (tmp[p] != "-t"):
-                if validIPAddress(sys.argv[p]):
-                    fake.append(sys.argv[p])
-                else:
-                    print(sys.argv[p] + " is not an valid ip address")
-                    print("")
-                p = p + 1
-            if p <= len(tmp):
-                if validIPAddress(sys.argv[p]):
-                    fake.append(sys.argv[p])
-                else:
-                    print(sys.argv[p] + " is not an valid ip address")
-                    print("")
+                print("      " + bcolors.WARNING + target + " did not add " + gw + " since no mac found" + bcolors.ENDC)
+                time.sleep(2)
+                return
+        else:
+            gw = getGwIp(target)
+            tmp = spoofer.get_mac(gw)
+            if tmp:
+                v.targets.append(gw)
+                v.macs.append(tmp)
             else:
-                print(sys.argv[p] + " is not an valid ip address")
-                print("")
-        elif x == "-g":
-            if i <= len(tmp):
-                if validIPAddress(sys.argv[i]):
-                    gw = sys.argv[i]
-                else:
-                    print(sys.argv[i] + " is not an valid ip address")
-                    print("")
-            else:
-                print("Missing value for -g")
-                print("")
+                print("      " + bcolors.WARNING + target + " did not add " + gw + " since no mac found" + bcolors.ENDC)
+                time.sleep(1)
+                return
 
-        i = i + 1
+    if validIPAddress(target):
+        tmp = spoofer.get_mac(target)
+        if tmp:
+            v.targets.append(target)
+            v.macs.append(target)
+        else:
+            print("      " + bcolors.WARNING + target + " did not add " + target + " since no mac found" + bcolors.ENDC)
+            time.sleep(1)
+            return
 
-    if t:
-        print("No target specified please provide target with -t")
-        print("----------------------------------")
-        exit()
-
-    if f:
-        print("No ip addresses to masquerade as specified will just arpspoof target")
-        print("")
-
-    if gw == "":
-        tmp = target.split('.')
-        gw = (tmp[0] + "." + tmp[1] + "." + tmp[2] + ".1")
-        print("Assuming default gateway is: " + gw)
-        print("If this is not correct please supply the ip for the default gateway as an argument with -g")
-        print("")
-
-    targets.append(target)
-    targets.append(gw)
-    targets.append(fake)
-
-    print("Arguments loaded")
-    print("Target: " + targets[0])
-    print("Default Gateway: " + targets[1])
-    if not f:
-        print("Fake ips ", targets[2])
-
-    return targets
+        return
+    else:
+        print("      " + bcolors.WARNING + target + " is not a valid ip address" + bcolors.ENDC)
+        time.sleep(1)
+    return
 
 
+def interrupt(v):
+    """
+    Restores everything to base settings
+    :param v:
+    :return:
+    """
+    print("    [!] Detected CTRL+C ! restoring the network, please wait...")
+    bash = "ip link delete dummy type dummy"
+    os.system(bash)
+    restore(v)
+    print("      Done")
+    print("      --------------------------------------------------------")
+    exit()
+
+
+def setup():
+    bash = "modprobe dummy && ip link add dummy type dummy"
+    os.system(bash)
+    return
