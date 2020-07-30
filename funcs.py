@@ -68,8 +68,6 @@ def getGwIp(target):
     """
     tmp = target.split('.')
     gw = (tmp[0] + "." + tmp[1] + "." + tmp[2] + ".1")
-    print("      Assuming default gateway is: " + gw)
-    print("")
     return gw
 
 
@@ -120,7 +118,7 @@ def removeTargets(v):
     return
 
 
-def removeNics(v):
+def removeFake(v):
     """
     Removes fake ips that have been setup
     :param v:
@@ -150,7 +148,7 @@ def removeNics(v):
             time.sleep(1)
             return
 
-        bash = ("ip addr del  " + v.fakes[sel] + "/0 dev dummy label dummy")
+        bash = ("ip addr del  " + v.fakes[sel] + "/0 dev dummy label dummy:" + str(sel))
         os.system(bash)
         v.fakes.pop(sel)
         return
@@ -217,7 +215,7 @@ def addFake(v):
 
     for x in fakes:
         if validIPAddress(x):
-            bash = ("ip addr add " + x + "/0 dev dummy label dummy")
+            bash = ("ip addr add " + x + "/0 dev dummy label dummy:" + str(len(v.fakes)))
             os.system(bash)
             if len(v.fakes) == 0:
                 v.fakes.append(x)
@@ -237,14 +235,6 @@ def addFake(v):
             print("      " + bcolors.WARNING + x + " is not a valid IP" + bcolors.ENDC)
             time.sleep(1)
 
-    if len(v.fakes) > 0:
-        bash = "ip a | grep -w inet"
-        os.system(bash)
-        print("      Created dummy NICs")
-    else:
-        print("      " + bcolors.WARNING + " no valid ips" + bcolors.ENDC)
-
-    time.sleep(1)
     return
 
 
@@ -335,7 +325,7 @@ def ntpToggle(v):
         v.ntpStatus = False
     else:
         v.ntpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        v.ntpSocket.bind(("0.0.0.0", 123))
+        v.ntpSocket.bind(("dummy", 123))
         v.ntpServer = NTProxy(v.ntpSocket)
         v.ntpServer.set_skim_threshold("30s")
         v.ntpServer.start()

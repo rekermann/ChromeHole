@@ -31,12 +31,12 @@ def menu(v):
       --------------------------------------------------------
     {bcolors.ENDC}
     """)
-    print("      ----------------------------------------------")
-    print("      |1 - Add targets      |2 - Delete Target     |")
-    print("      |3 - Add Fake IP      |4 - Remove Fake IP    |")
-    print("      |5 - Toggle Spoof     |6 - WIP STRIP         |")
-    print("      |7 - Toggle NTP Server|8 - Toggle IP Forward |")
-    print("      ----------------------------------------------")
+    print("      --------------------------------------------------------")
+    print("      |1 - Add targets           |2 - Delete Target          |")
+    print("      |3 - Add Fake IP           |4 - Remove Fake IP         |")
+    print("      |5 - Toggle Spoof          |6 - WIP STRIP              |")
+    print("      |7 - Toggle NTP Server     |8 - Toggle IP Forward      |")
+    print("      --------------------------------------------------------")
     try:
         i = int(input("      Enter Choice: "))
     except ValueError:
@@ -61,7 +61,7 @@ def menuSwitch(v, i):
         funcs.addFake(v)
         return
     if i == 4:
-        funcs.removeNics(v)
+        funcs.removeFake(v)
         return
     if i == 5:
         if v.spoof:
