@@ -4,6 +4,7 @@ import os
 import spoofer
 import time
 from menu import bcolors
+from ntp import NTProxy
 
 
 def toggleIpforward(v):
@@ -14,12 +15,12 @@ def toggleIpforward(v):
     """
     file_path = "/proc/sys/net/ipv4/ip_forward"
     with open(file_path, "w") as f:
-        if v.ipforward:
+        if v.ipForward:
                 print(0, file=f)
-                v.ipforward = False
+                v.ipForward = False
         else:
                 print(1, file=f)
-                v.ipforward = True
+                v.ipForward = True
     return
 
 
@@ -67,7 +68,7 @@ def getGwIp(target):
     """
     tmp = target.split('.')
     gw = (tmp[0] + "." + tmp[1] + "." + tmp[2] + ".1")
-    print("Assuming default gateway is: " + gw)
+    print("      Assuming default gateway is: " + gw)
     print("")
     return gw
 
@@ -88,6 +89,7 @@ def removeTargets(v):
         for x in v.targets:
             print(f"      {i} - {x}")
             i += 1
+        print(f"      {i} - ALL")
     else:
         print("      " + bcolors.WARNING + "No targets" + bcolors.ENDC)
         time.sleep(1)
@@ -99,13 +101,16 @@ def removeTargets(v):
         print("      " + bcolors.WARNING + "Only input integers" + bcolors.ENDC)
         time.sleep(1)
         return
+    except KeyboardInterrupt:
+        return
 
-    if sel >= len(v.targets):
+    if sel == len(v.targets):
+        v.targets = []
+    elif sel > len(v.targets):
         print("      " + bcolors.WARNING + "Selection not in list" + bcolors.ENDC)
         time.sleep(1)
         return
-
-    if sel == 0:
+    elif sel == 0:
         print("      " + bcolors.WARNING + "Default gateway removed, removing all targets" + bcolors.ENDC)
         v.targets = []
         time.sleep(2)
@@ -127,7 +132,7 @@ def removeNics(v):
         for x in v.fakes:
             print(f"      {i} - {x}")
             i += 1
-
+        print(f"      {i} - ALL")
         try:
             sel = int(input("      Enter selection you want to delete: ")) - 1
         except ValueError:
@@ -137,7 +142,10 @@ def removeNics(v):
         except KeyboardInterrupt:
             return
 
-        if sel >= len(v.fakes):
+        if sel == len(v.fakes):
+            v.fakes = []
+            return
+        elif sel > len(v.fakes):
             print("      " + bcolors.WARNING + "Selection not in list" + bcolors.ENDC)
             time.sleep(1)
             return
@@ -298,12 +306,15 @@ def interrupt(v):
     :param v:
     :return:
     """
-    print("    [!] Detected CTRL+C ! restoring the network, please wait...")
+    print("    " + bcolors.OKBLUE + "[!] Detected CTRL+C ! restoring setting, please wait..." + bcolors.ENDC)
     bash = "ip link delete dummy type dummy"
     os.system(bash)
-    restore(v)
-    print("      Done")
-    print("      --------------------------------------------------------")
+    if v.spoof:
+        restore(v)
+    if v.ntpStatus:
+        ntpToggle(v)
+    print("      " + bcolors.OKGREEN + "Done")
+    print("      --------------------------------------------------------" + bcolors.ENDC)
     exit()
 
 
@@ -311,3 +322,23 @@ def setup():
     bash = "modprobe dummy && ip link add dummy type dummy"
     os.system(bash)
     return
+
+
+def ntpToggle(v):
+    if v.ntpStatus:
+        print("      " + bcolors.OKBLUE + "Working.." + bcolors.ENDC)
+        v.ntpServer.stop()
+        v.ntpServer.join()
+        v.ntpSocket.close()
+        v.ntpServer = ""
+        v.ntpSocket = ""
+        v.ntpStatus = False
+    else:
+        v.ntpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        v.ntpSocket.bind(("0.0.0.0", 123))
+        v.ntpServer = NTProxy(v.ntpSocket)
+        v.ntpServer.set_skim_threshold("30s")
+        v.ntpServer.start()
+        v.ntpStatus = True
+    return
+

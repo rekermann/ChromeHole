@@ -7,9 +7,11 @@ import os
 def main():
     funcs.setup()
     v = vals.vals()
+
     try:
         while True:
             menu.menu(v)
+            pass
     except KeyboardInterrupt:
         funcs.interrupt(v)
 

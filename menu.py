@@ -1,5 +1,6 @@
 import time
 import funcs
+import ntp
 
 
 class bcolors:
@@ -12,6 +13,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 def menu(v):
     funcs.cls()
 
@@ -23,25 +25,24 @@ def menu(v):
          _/    _/            _/    _/  _/    _/  _/  _/          
       _/_/_/  _/            _/    _/    _/_/    _/    _/_/_/
     
-      |IP Forward = {v.ipforward}|  |Targets = {v.targets}|
+      |IP Forward = {v.ipForward}|  |Targets = {v.targets}|
       |Spoofing = {v.spoof}|  |Fake Ips = {v.fakes}|
+      |NTP server = {v.ntpStatus}|
       --------------------------------------------------------
     {bcolors.ENDC}
     """)
-    print("      -----------------------------------------")
-    print("      |1 - Add targets |2 - Delete Target     |")
-    print("      |3 - Add Fake IP |4 - Remove Fake IP    |")
-    print("      |5 - Toggle Spoof|6 - WIP STRIP         |")
-    print("      |7 - WIP HSTS    |8 - Toggle IP Forward |")
-    print("      -----------------------------------------")
+    print("      ----------------------------------------------")
+    print("      |1 - Add targets      |2 - Delete Target     |")
+    print("      |3 - Add Fake IP      |4 - Remove Fake IP    |")
+    print("      |5 - Toggle Spoof     |6 - WIP STRIP         |")
+    print("      |7 - Toggle NTP Server|8 - Toggle IP Forward |")
+    print("      ----------------------------------------------")
     try:
         i = int(input("      Enter Choice: "))
     except ValueError:
         print("      " + bcolors.WARNING + "Only input integers" + bcolors.ENDC)
         time.sleep(1)
         return
-    except KeyboardInterrupt:
-        funcs.interrupt(v)
 
     if 0 < i <= 8:
         menuSwitch(v, i)
@@ -50,7 +51,6 @@ def menu(v):
 
 
 def menuSwitch(v, i):
-
     if i == 1:
         funcs.addTarget(v)
         return
@@ -71,11 +71,11 @@ def menuSwitch(v, i):
         return
 
     if i == 6:
-        #WIP
+        # WIP
         return
 
     if i == 7:
-        #WIP
+        funcs.ntpToggle(v)
         return
 
     if i == 8:
@@ -83,5 +83,3 @@ def menuSwitch(v, i):
         return
 
     return
-
-
