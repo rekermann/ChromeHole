@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import funcs
-import menu
+from Funcs import funcs
+from Menu import menu
 
 
 def main():

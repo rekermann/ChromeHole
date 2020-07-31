@@ -1,13 +1,13 @@
 import _thread
 import socket
 import os
-import spoofer
+from Arp import spoofer
 import time
-from menu import bcolors
-from ntp import NTProxy
-import menu
-import sniff
-import values
+from Vals.bcolors import bcolors
+from NTP.ntp import NTProxy
+from Menu import menu
+from Sniff import sniff
+from Vals import values
 
 
 def toggleIpforward(v):

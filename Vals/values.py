@@ -1,4 +1,4 @@
-import ntp
+from NTP import ntp
 import socket
 import json
 
@@ -8,7 +8,7 @@ class Values:
     Helper Class to keep track of values
     """
     def __init__(self):
-        with open("values.json") as f:
+        with open("../values.json") as f:
             data = json.load(f)
 
         self.targets = data.get("targets")
