@@ -5,6 +5,7 @@ import spoofer
 import time
 from menu import bcolors
 from ntp import NTProxy
+import sniff
 
 
 def toggleIpforward(v):
@@ -67,7 +68,11 @@ def getGwIp(target):
     :return:
     """
     tmp = target.split('.')
-    gw = (tmp[0] + "." + tmp[1] + "." + tmp[2] + ".1")
+    try:
+        gw = (tmp[0] + "." + tmp[1] + "." + tmp[2] + ".1")
+    except IndexError:
+        print(bcolors.FAIL + "      Invalid IP provided: " + target + bcolors.ENDC)
+        return False
     return gw
 
 
@@ -102,12 +107,13 @@ def removeTargets(v):
     except KeyboardInterrupt:
         return
 
-    if sel == len(v.targets):
-        v.targets = []
-    elif sel > len(v.targets):
-        print("      " + bcolors.WARNING + "Selection not in list" + bcolors.ENDC)
+    if not 0 <= sel < i:
+        print("      " + bcolors.WARNING + str(sel + 1) + " is not a selection" + bcolors.ENDC)
         time.sleep(1)
         return
+
+    if sel == len(v.targets):
+        v.targets = []
     elif sel == 0:
         print("      " + bcolors.WARNING + "Default gateway removed, removing all targets" + bcolors.ENDC)
         v.targets = []
@@ -140,13 +146,15 @@ def removeFake(v):
         except KeyboardInterrupt:
             return
 
+        if not 0 <= sel < i:
+            print("      " + bcolors.WARNING + str(sel + 1) + " is not a selection" + bcolors.ENDC)
+            time.sleep(1)
+            return
+
         if sel == len(v.fakes):
             v.fakes = []
             return
-        elif sel > len(v.fakes):
-            print("      " + bcolors.WARNING + "Selection not in list" + bcolors.ENDC)
-            time.sleep(1)
-            return
+
 
         bash = ("ip addr del  " + v.fakes[sel] + "/0 dev dummy label dummy:" + str(sel))
         os.system(bash)
@@ -182,17 +190,12 @@ def startSpoof(v):
     return
 
 
-def restore(v):
+def restoreSpoof(v):
     """
     Restores arpspoofing
     :param v:
     :return:
     """
-    if not v.spoof:
-        print("      " + bcolors.WARNING + "Currently not spoofing" + bcolors.ENDC)
-        time.sleep(1)
-        return
-
     gw = v.targets[0]
     hgw = v.macs[0]
     v.spoof = False
@@ -203,13 +206,17 @@ def restore(v):
     return
 
 
-def addFake(v):
+def addFakes(v):
     """
     adds fake ip to object vals
     :param v:
     :return:
     """
-    fakes = input("      Enter IP addresses separated with a space: ")
+    try:
+        fakes = input("      Enter IP addresses separated with a space: ")
+    except KeyboardInterrupt:
+        return
+
     fakes = fakes.split(" ")
     tmp = True
 
@@ -238,7 +245,7 @@ def addFake(v):
     return
 
 
-def addTarget(v):
+def addTargets(v):
     """
     Adds target to object vals
     :param v:
@@ -248,45 +255,53 @@ def addTarget(v):
         print("      " + bcolors.WARNING + "Turn off spoofer first" + bcolors.ENDC)
         time.sleep(1)
         return
+    try:
+        target = input("      Enter IP address of targets separated with spaces: ")
+    except KeyboardInterrupt:
+        return
 
-    gw = ""
-    target = input("      Enter IP address of target: ")
+    target = target.split(" ")
+
     if len(v.targets) == 0:
-        gw = input("      Enter IP address of router (leave blank if same subnet): ")
+        try:
+            gw = input("      Enter IP address of router (leave blank if same subnet): ")
+        except KeyboardInterrupt:
+            return
         if validIPAddress(gw):
             tmp = spoofer.get_mac(gw)
             if tmp:
                 v.targets.append(gw)
                 v.macs.append(tmp)
             else:
-                print("      " + bcolors.WARNING + target + " did not add " + gw + " since no mac found" + bcolors.ENDC)
+                print("      " + bcolors.WARNING + "Did not add " + gw + " since no mac address found" + bcolors.ENDC)
                 time.sleep(2)
                 return
         else:
-            gw = getGwIp(target)
-            tmp = spoofer.get_mac(gw)
-            if tmp:
-                v.targets.append(gw)
-                v.macs.append(tmp)
+            gw = getGwIp(target[0])
+            if gw:
+                tmp = spoofer.get_mac(gw)
+                if tmp:
+                    v.targets.append(gw)
+                    v.macs.append(tmp)
             else:
-                print("      " + bcolors.WARNING + target + " did not add " + gw + " since no mac found" + bcolors.ENDC)
+                if gw:
+                    print("      " + bcolors.WARNING + "Did not add " + gw + " since no mac address found" + bcolors.ENDC)
                 time.sleep(1)
                 return
 
-    if validIPAddress(target):
-        tmp = spoofer.get_mac(target)
-        if tmp:
-            v.targets.append(target)
-            v.macs.append(target)
+    for x in target:
+        if validIPAddress(x):
+            tmp = spoofer.get_mac(x)
+            if tmp:
+                v.targets.append(x)
+                v.macs.append(x)
+            else:
+                print("      " + bcolors.WARNING + "Did not add " + x + " since no mac address found" + bcolors.ENDC)
+                time.sleep(1)
         else:
-            print("      " + bcolors.WARNING + target + " did not add " + target + " since no mac found" + bcolors.ENDC)
+            print("      " + bcolors.WARNING + x + " is not a valid ip address" + bcolors.ENDC)
             time.sleep(1)
-            return
 
-        return
-    else:
-        print("      " + bcolors.WARNING + target + " is not a valid ip address" + bcolors.ENDC)
-        time.sleep(1)
     return
 
 
@@ -300,7 +315,7 @@ def interrupt(v):
     bash = "ip link delete dummy type dummy"
     os.system(bash)
     if v.spoof:
-        restore(v)
+        restoreSpoof(v)
     if v.ntpStatus:
         ntpToggle(v)
     print("      " + bcolors.OKGREEN + "Done")
@@ -324,11 +339,42 @@ def ntpToggle(v):
         v.ntpSocket = ""
         v.ntpStatus = False
     else:
+        i = 1
+        for x in v.fakes:
+            print(f"      {i} - {x}")
+            i += 1
+        print(f"      {i} - 0.0.0.0")
+        try:
+            sel = int(input("      Select ip that NTP server will be hosted on: ")) - 1
+        except ValueError:
+            print("      " + bcolors.WARNING + "Only input integers" + bcolors.ENDC)
+            time.sleep(1)
+            return
+        except KeyboardInterrupt:
+            return
+
+        if not 0 <= sel < i:
+            print("      " + bcolors.WARNING + str(sel + 1) + " is not a selection" + bcolors.ENDC)
+            time.sleep(1)
+            return
+
         v.ntpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        v.ntpSocket.bind(("dummy", 123))
+        if sel == len(v.fakes):
+            v.ntpSocket.bind(("0.0.0.0", 123))
+        else:
+            v.ntpSocket.bind((v.fakes[sel], 123))
         v.ntpServer = NTProxy(v.ntpSocket)
         v.ntpServer.set_skim_threshold("30s")
         v.ntpServer.start()
         v.ntpStatus = True
     return
+
+
+def toggleSniff(v):
+    if v.sniff:
+        v.sniff = False
+        pass
+    else:
+        _thread.start_new_thread(sniff.sniffer, ())
+        v.sniff = True
 

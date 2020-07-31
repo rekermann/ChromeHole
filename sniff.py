@@ -6,5 +6,8 @@ def sniffer(target):
 
 
 def change_send(pkt):
+    txt = io.StringIO()
+    sys.stdout = txt
     sendp(pkt)
+    sys.stdout = sys.__stdout__
     return

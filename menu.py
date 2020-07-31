@@ -1,6 +1,5 @@
 import time
 import funcs
-import ntp
 
 
 class bcolors:
@@ -34,7 +33,7 @@ def menu(v):
     print("      --------------------------------------------------------")
     print("      |1 - Add targets           |2 - Delete Target          |")
     print("      |3 - Add Fake IP           |4 - Remove Fake IP         |")
-    print("      |5 - Toggle Spoof          |6 - WIP STRIP              |")
+    print("      |5 - Toggle Spoof          |6 - Toggle Sniff           |")
     print("      |7 - Toggle NTP Server     |8 - Toggle IP Forward      |")
     print("      --------------------------------------------------------")
     try:
@@ -52,26 +51,26 @@ def menu(v):
 
 def menuSwitch(v, i):
     if i == 1:
-        funcs.addTarget(v)
+        funcs.addTargets(v)
         return
     if i == 2:
         funcs.removeTargets(v)
         return
     if i == 3:
-        funcs.addFake(v)
+        funcs.addFakes(v)
         return
     if i == 4:
         funcs.removeFake(v)
         return
     if i == 5:
         if v.spoof:
-            funcs.restore(v)
+            funcs.restoreSpoof(v)
         else:
             funcs.startSpoof(v)
         return
 
     if i == 6:
-        # WIP
+        funcs.toggleSniff(v)
         return
 
     if i == 7:

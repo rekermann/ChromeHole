@@ -8,7 +8,9 @@ import os
 def main():
     funcs.setup()
     v = vals.vals()
-
+    funcs.toggleIpforward(v)
+    bash = ("ip addr add 51.145.123.29/0 dev dummy label dummy:0")
+    os.system(bash)
     try:
         while True:
             menu.menu(v)

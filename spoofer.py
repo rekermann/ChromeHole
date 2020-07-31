@@ -10,10 +10,13 @@ def get_mac(ip):
     """
     i = 0
     ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff')/ARP(pdst=ip), timeout=3, verbose=0)
-    while not ans and i < 3:
-        print("      Unable to get mac for: " + ip + " retrying")
-        ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff') / ARP(pdst=ip), timeout=3, verbose=0)
-        i = i + 1
+    try:
+        while not ans and i < 3:
+            print("      Unable to get mac for: " + ip + " retrying")
+            ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff') / ARP(pdst=ip), timeout=3, verbose=0)
+            i = i + 1
+    except KeyboardInterrupt:
+        return
 
     if ans:
         return ans[0][1].src

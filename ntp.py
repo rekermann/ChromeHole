@@ -86,7 +86,7 @@ class NTProxy(threading.Thread):
     # Force step or date
     def stop(self):
         self.stopF = True
-
+        
     def set_skim_threshold(self, threshold):
         self.skim_threshold = str2sec(threshold)
 
@@ -164,10 +164,7 @@ class NTProxy(threading.Thread):
                     self.seen[source[0]] = epoch_now
                     # Year-Month-Day Hour:Mins
                     aux = time.gmtime(timestamp)
-                    future_time = str(aux[0]).zfill(4) + '-' + str(aux[1]).zfill(2) + '-' + str(aux[2]).zfill(
-                        2) + ' ' + str(aux[3]).zfill(2) + ':' + str(aux[4]).zfill(2)
                     aux = time.gmtime(time.time())
-                    current_time = str(aux[3]).zfill(2) + ':' + str(aux[4]).zfill(2) + ':' + str(aux[5]).zfill(2)
 
             except:
                 continue
@@ -188,8 +185,8 @@ class NTProxy(threading.Thread):
         # Format from https://github.com/limifly/ntpserver/
         # Define response params
         ntp_timestamp = timestamp + self.ntp_delta
-        param = {'ID': 'Unknown', 'leap': 0, 'version': info['version'], 'mode': 4, 'stratum': 2, 'poll': 9,
-                 'precision': -20, 'root_delay': 0, 'root_dispersion': 0, 'ref_id': info['ref_id'],
+        param = {'ID': 'Unknown', 'leap': 0, 'version': info['version'], 'mode': 4, 'stratum': 3, 'poll': 17,
+                 'precision': 0, 'root_delay': 0.01, 'root_dispersion': 0.01, 'ref_id': 423814661,
                  'ref_timestamp': ntp_timestamp - 5, 'orig_timestamp': 0,
                  'orig_timestamp_high': info['tx_timestamp_high'], 'orig_timestamp_low': info['tx_timestamp_low'],
                  'recv_timestamp': ntp_timestamp, 'tx_timestamp': ntp_timestamp, 'tx_timestamp_high': 0,
