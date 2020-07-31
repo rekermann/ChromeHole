@@ -92,10 +92,12 @@ def removeTargets(v):
     menu.menuBanner(v)
     if len(v.targets) > 0:
         i = 1
+        print("      --------------------------------------------------------")
         for x in v.targets:
             print(f"      {i} - {x}")
             i += 1
         print(f"      {i} - ALL")
+        print("      --------------------------------------------------------")
     else:
         print("      " + bcolors.WARNING + "No targets" + bcolors.ENDC)
         time.sleep(1)
@@ -137,10 +139,12 @@ def removeFake(v):
     if len(v.fakes) > 0:
         menu.menuBanner(v)
         i = 1
+        print("      --------------------------------------------------------")
         for x in v.fakes:
             print(f"      {i} - {x}")
             i += 1
         print(f"      {i} - ALL")
+        print("      --------------------------------------------------------")
         try:
             sel = int(input("      Enter selection you want to delete: ")) - 1
         except ValueError:
@@ -370,10 +374,12 @@ def ntpToggle(v):
     else:
         i = 1
         menu.menuBanner(v)
+        print("      --------------------------------------------------------")
         for x in v.fakes:
             print(f"      {i} - {x}")
             i += 1
         print(f"      {i} - 0.0.0.0")
+        print("      --------------------------------------------------------")
         try:
             sel = int(input("      Select ip that NTP server will be hosted on: ")) - 1
         except ValueError:

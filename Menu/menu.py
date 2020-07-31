@@ -56,7 +56,7 @@ def menuSwitch(v, i):
         except KeyboardInterrupt:
             return
 
-            return
+
         if i == 1:
             funcs.addTargets(v)
         elif i == 2:
