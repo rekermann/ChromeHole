@@ -19,4 +19,5 @@ class Values:
         self.ntpServer = ntp.NTProxy
         self.ntpSocket = socket.socket
         self.ntpStatus = False
+        self.sniff = False
 

@@ -7,7 +7,7 @@ def main():
     v = funcs.setup()
     try:
         while True:
-            menu.menu(v)
+            menu.mainMenu(v)
             pass
     except KeyboardInterrupt:
         funcs.interrupt(v)

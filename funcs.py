@@ -5,6 +5,7 @@ import spoofer
 import time
 from menu import bcolors
 from ntp import NTProxy
+import menu
 import sniff
 import values
 
@@ -88,6 +89,7 @@ def removeTargets(v):
         time.sleep(1)
         return
 
+    menu.menuBanner(v)
     if len(v.targets) > 0:
         i = 1
         for x in v.targets:
@@ -133,6 +135,7 @@ def removeFake(v):
     """
 
     if len(v.fakes) > 0:
+        menu.menuBanner(v)
         i = 1
         for x in v.fakes:
             print(f"      {i} - {x}")
@@ -366,6 +369,7 @@ def ntpToggle(v):
         v.ntpStatus = False
     else:
         i = 1
+        menu.menuBanner(v)
         for x in v.fakes:
             print(f"      {i} - {x}")
             i += 1
