@@ -6,6 +6,7 @@ import time
 from menu import bcolors
 from ntp import NTProxy
 import sniff
+import values
 
 
 def toggleIpforward(v):
@@ -324,9 +325,34 @@ def interrupt(v):
 
 
 def setup():
+
+    v = values.Values()
+
+    if "nt" in os.name:
+        print(bcolors.FAIL + "Can only run on a unix system" + bcolors.ENDC)
+        exit()
+    elif os.getuid() != 0:
+        print(bcolors.FAIL + "Run this application as root" + bcolors.ENDC)
+        exit()
+
+    for x in v.targets:
+        y = spoofer.get_mac(x)
+        if y:
+            v.macs.append(y)
+        else:
+            print("      " + bcolors.FAIL + str(x) + " Invalid IP in json" + bcolors.ENDC)
+            exit()
+
     bash = "modprobe dummy && ip link add dummy type dummy"
     os.system(bash)
-    return
+    toggleIpforward(v)
+    i = 0
+    for x in v.fakes:
+        bash = ("ip addr add " + x + "/0 dev dummy label dummy:" + str(i))
+        os.system(bash)
+        i += 1
+
+    return v
 
 
 def ntpToggle(v):
