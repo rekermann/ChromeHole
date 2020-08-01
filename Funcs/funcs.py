@@ -411,6 +411,6 @@ def toggleSniff(v):
         v.sniff = False
         pass
     else:
-        _thread.start_new_thread(sniff.sniffer, ())
+        _thread.start_new_thread(sniff.sniffer, (v.targets[1]))
         v.sniff = True
 

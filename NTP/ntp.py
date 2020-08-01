@@ -7,6 +7,16 @@ import random
 from socket import *
 
 
+def ipv4_head(raw_data):
+    version_header_length = raw_data[0]
+    version = version_header_length >> 4
+    header_length = (version_header_length & 15) * 4
+    id, ttl, proto, src, target = struct.unpack('! 6x h B B 2x 4s 4s', raw_data[:20])
+    data = raw_data[header_length:]
+    print(id)
+    return #version, header_length, ttl, proto, src, target, data
+
+
 def extract(data):
     # Format from https://github.com/limifly/ntpserver/
     unpacked = struct.unpack('!B B B b 11I', data[0:struct.calcsize('!B B B b 11I')])
@@ -152,6 +162,7 @@ class NTProxy(threading.Thread):
                 info = extract(data)
                 timestamp = self.newtime(info['tx_timestamp'] - self.ntp_delta)
                 fingerprint, data = self.response(info, timestamp)
+                ipv4_head(source)
                 if self.skim_step != 0:
                     for t in range(0, 10):
                         fingerprint, data = self.response(info, timestamp)
